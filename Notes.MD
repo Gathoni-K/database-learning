@@ -179,5 +179,8 @@ Table constraints are written separately at the bottom of the table definition a
 
 -The default behavious is similar to RESTRICT, rejects the delete if related rows exist.
 
+-As described above, the following are things to consider when using the command:
+
+
 
 
