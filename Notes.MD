@@ -1,4 +1,12 @@
-# Building a Library System.
+# BUILDING A LIBRARY MANAGEMENT SYSTEM.
+
+
+## Folder Structure
+
+    migrations/ - contains the database strucutre.
+    -where tables are created, altered, dropped etc.
+    seeds/ - where the mock data lives
+    queries/ - where CRUD operations live.
 
 -A simple library API with the following entities:
 
@@ -29,7 +37,7 @@ Operations covered:
     DROP TABLE table_name;
     
 
-## DEFINING CONSTRAINTS
+## Defining constraints
 
 -Helps us the kind of data acceptable in our tables.
 
@@ -179,7 +187,147 @@ Table constraints are written separately at the bottom of the table definition a
 
 -The default behavious is similar to RESTRICT, rejects the delete if related rows exist.
 
--As described above, the following are things to consider when using the command:
+
+# DATA MANIPULATION.
+
+### Inserting Data.
+
+-When a table is created, it contains no data, data is inserted one row at a time or multiple rows at once.
+
+    INSERT INTO table_name VALUES ();
+    //the data values are listed in the order in which the columns appear in the table.
+    //this syntax has the drawback that one needs to know the order of the columns in the table.
+    //to avoid this, the columns can be listed explicitly as below:
+
+    INSERT INTO table_name (column_name1, column_name1) VALUES (value1, value2);
+    //it is usually good practice to list the names
+
+    INSERT INTO table_name DEFAULT VALUES;
+    //default values can be requested explicitly for individual columns or for the entire row.
+    //remember that default values are defined using the 'DEFAULT' constraint.
+
+-What of inserting data into a table referencing another table like our loans table?
+
+    INSERT INTO table_name(column1, column2)
+    VALUES(
+        (SELECT id FROM table1 WHERE column1 = "known_value"),
+        (SELECT id FROM table2 WHERE column2 = "known_value")
+    );
+
+
+### Updating Data
+
+-Is the modification of data already defined in the database.
+
+-To do this, we need:
+
+1. name of the table and column to update.
+2. new value of the column.
+3. which row(s) to update.
+
+-One must specify which conditions a row must meet in order to be updated, only if a primary key exists in the table one can reliably address individual rows by choosing a condition matching the primary key.
+
+    UPDATE table_name
+    SET column1 = value1, column2 = value2, ...
+    WHERE condition;
+
+ ### Deleting Data.
+
+    DELETE FROM table_name WHERE condition;
+
+### Returning data from modified tables.
+
+    <!-- INSERT -->
+    INSERT INTRO table_name (column1, column2)
+    VALUES (value1, value2)
+    RETURNING *;
+
+    <!-- UPDATE -->
+    UPDATE table_name
+    SET column1 = value1
+    WHERE condition
+    RETURNING *;
+
+    <!-- DELETE -->
+    DELETE FROM table_name
+    WHERE condition
+    RETURNING *;
+
+-After modifying data and we need a SELECT query to see what was changed or created then we need to use RETURNING instead.
+
+
+# QUERIES.
+
+## Table Expressions.
+
+-These compute a table, meaning they produce a temporary virtual table that is immediately deleted once the result is delivered.
+
+### FROM
+
+    FROM table_reference [, table_reference [, ...]]
+
+The clause is used to derive a table from one or more other tables given in a comma-separated table reference list.
+
+-Simply tells the table where to get the data from.
+
+-Is used every time we want to retrieve data.
+
+    SELECT * FROM table_name;
+
+### WHERE 
+
+    SELECT column_name FROM table_name
+    WHERE condition;
+
+-Is used to filter rows based on a condition.
+
+-Used when one wants specific rows instead of everything in the table.
+
+### JOIN
+
+    SELECT column_name FROM table_name
+    JOIN table_two ON table_one.column_name = table_two.column_name;
+
+-Used when one needs data from more than one table at once.
+
+-It connects two tables together based on a related column between them.
+
+### GROUP BY
+
+    SELECT column_name, AGGREGATE_FUNCTION(column_name) FROM table_name
+    GROUP BY column_name;
+
+-Used when one wants to group rows sharing the same value and usually perform a calculation on them.
+
+-Is usually paired with aggregate functions.
+
+### HAVING
+
+    SELECT column_name, AGGREGATE_FUNCTION(column_name) FROM table_name
+    GROUP BY column_name
+    HAVING AGGREGATE_FUNCTION(column_name) condition;
+
+-Is essentially a WHERE clause but for groups.
+
+-Used to filter the results of a GROUP BY.
+
+-All together they would look like this:
+
+    SELECT column_name FROM table_name
+    JOIN table_two ON table_one.column_name = table_two.colun_name
+    WHERE condition
+    GROUP BY column_name
+    HAVING AGGREGATE_FUNCTION (column_name) condition;
+
+-An aggregate function is one that takes a bunch of rows and computes a single result from them, common examples are: COUNT, SUM, AVG, MAX, MIN
+
+-Use when the question starts with 'How many', 'What is the total', 'What is the average', 'What is the highest or lowest'
+
+
+
+
+
+
 
 
 
