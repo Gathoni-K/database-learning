@@ -324,11 +324,135 @@ The clause is used to derive a table from one or more other tables given in a co
 -Use when the question starts with 'How many', 'What is the total', 'What is the average', 'What is the highest or lowest'
 
 
+## Select-List
+
+    SELECT column_one, column_two FROM table_name;
+    <!-- gets specific columns -->
+
+    SELECT DISTINCT column_name FROM table_name;
+    <!-- filters out duplicate values from our result only returning unique values.
+    Used when our question begins with 'What are all the unique...' or ''What are all the different' -->
+
+## Combining Queries.
+
+-When combining queries one must ensure that both queries have the same number of columns and compatible data types.
+
+### UNION.
+
+-It's basically, 'Give me the results from query one and query two'
+
+    SELECT column_name FROM table_one
+    UNION
+    SELECT column_name FROM table_two;
+
+### INTERSECT
+
+-Returns only the rows appearing in both query results.
+
+    SELECT column_name FROM table_one
+    INTERSECT
+    SELECT column_name FROM table_two;
+
+### EXCEPT
+
+-Returns rows from the first query that do not appear in the second query.
+
+    SELECT column_name FROM table_one
+    EXCEPT
+    SELECT column_name FROM table_two;
 
 
+## Sorting Rows.
+
+    SELECT column_name FROM table_name
+    ORDER BY column_name ASC;
+    <!-- ascending, is the default method -->
+
+    SELECT column_namr FROM table_name
+    ORDER BY column_name DESC;
+    <!-- arranges rows in descending order -->
+
+    SELECT column_name FROM table_name
+    ORDER BY column_name ASC, column_two DESC;
+    <!-- sorting by multiple columns -->
 
 
+    SELECT column_name FROM table_name
+    LIMIT number;
+    <!-- controls how many rows are returned -->
+
+    SELECT column_name FROM table_name
+    LIMIT number OFFSET number;
+    <!-- offset tells PostgreSQL how many rows to skip before starting to return results -->
+
+-The most common use case for this is pagination.
+
+ -The pattern is always:
+
+    OFFSET = (page number - 1) * LIMIT
 
 
+## WITH Queries.(Common Table Expressions)
 
+-A CTE is a temporary named result set defined at the beginning of a query and is referenced within the same query.
 
+-Is giving a subquery a name so that it can be referred to cleanly instead of nesting queries inside each other.
+
+    WITH cte_name AS(
+        SELECT column_name FROM table_name
+        WHERE condition
+    )
+    SELECT * FROM cte_name;
+
+### Recursive Queries
+
+-Is one referencing itself.
+
+-It keeps running until there are no more results to return.
+
+-Used when dealing with hierarchical data, data with parent-child relationship that can go many levels deep, e.g. an employee table where every employee has a manager who is also an employee, a category table where categories have subcategories.
+
+    WITH RECURSIVE cte_name AS(
+        <!-- the starting point/non-recursive part -->
+        SELECT column_name FROM table_name
+        WHERE condition
+
+        UNION ALL
+
+        <!-- the recursive part -->
+        SELECT column_name FROM table_name
+        JOIN cte_name ON condition
+    )
+    SELECT * FROM cte_name;
+    <!-- the second part builds on the previous result until there is nothing left to return -->
+
+### CTE Materialization.
+
+-Is how PostgreSQL decides to execute the CTE behind the scenes.
+
+-Materialized is when PostgreSQL runs the cte once, stores the result temporarily in memory and reuses the stored result every time the cte is referenced.
+
+-Not materialized is when the cte is folded into the main query and is optimized together at once.
+
+    WITH cte_name AS MATERIALIZED(
+        SELECT column_name FROM table_name
+    )
+    SELECT * FROM cte_name;
+
+    WITH cte_name AS NOT MATERIALIZED(
+        SELECT column_name FROM table_name
+    )
+    SELECT * FROM cte_name;
+
+### Data Modifying Statements
+
+-Is used when one wants to modify data and immediately use the affected rows in another query in the same step.
+
+    WITH modified_rows AS(
+        INSERT INTO table_name (column_name)
+        VALUES (value)
+        RETURNING *
+    )
+    SELECT * FROM modified_rows;
+    <!-- note the RETURNING command here as discussed above is used to allow modified rows to be passed into the next part of the query. -->
+    
