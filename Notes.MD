@@ -3,10 +3,11 @@
 
 ## Folder Structure
 
-    migrations/ - contains the database strucutre.
+    migrations/ - contains the database structure.
     -where tables are created, altered, dropped etc.
     seeds/ - where the mock data lives
     queries/ - where CRUD operations live.
+    -group the queries as per the entities, i.e. all entities concerning books inside one file
 
 -A simple library API with the following entities:
 

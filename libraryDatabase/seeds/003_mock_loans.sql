@@ -2,7 +2,7 @@ INSERT INTO loans (member_id, book_id) VALUES
     (
         (SELECT id FROM members WHERE name = 'Lydia Wanjiku'),
         (SELECT id FROM books WHERE title = 'Purple Hibiscus')
-    ),
+    ), 
     (
         (SELECT id FROM members WHERE name = 'Tyra Wairimu'),
         (SELECT id FROM books WHERE title = 'Jefty Is Five')
