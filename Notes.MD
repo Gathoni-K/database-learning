@@ -293,6 +293,30 @@ The clause is used to derive a table from one or more other tables given in a co
 
 -It connects two tables together based on a related column between them.
 
+Types of joins:
+    1.Inner - compares each row in table A and each in B with a certain condition, when there is a match, they are added to the results.
+
+        SELECT employee_name, department_name FROM employees
+        INNER JOIN departments USING (department_id);
+
+
+    2.Left - works the same as an inner join but the only difference is that, when there are no matches, the results are returned with null fields unlike in inner joins where nothing is done.
+
+    3.Right - not commonly used
+
+    4.Full outer - a combination of the left and right join.
+
+    5.Self -  a join within the same table.
+    -a table and column alias is needed.
+        
+        SELECT e1.employee_name, e1.employee_name FROM employees e1
+        LEFT JOIN employees e2 ON e1.department_id = e2.department_id;
+
+    6.Cross - a join between two table without any condition.
+    -lists out possible combinations of the data.
+
+    7.Natural - automatic join.
+
 ### GROUP BY
 
     SELECT column_name, AGGREGATE_FUNCTION(column_name) FROM table_name

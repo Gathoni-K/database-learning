@@ -14,8 +14,8 @@ DELETE FROM loans WHERE name = 'Irman Njogu';
 UPDATE loans
 SET returned_at = '2026-01-25 11:45:15'
 WHERE member_id = (SELECT id FROM members WHERE name = 'Lydia Wanjiku')
-  AND book_id = (SELECT id FROM books WHERE title = 'Purple Hibiscus')
-  AND returned_at IS NULL;
+AND book_id = (SELECT id FROM books WHERE title = 'Purple Hibiscus')
+AND returned_at IS NULL;
 
 --query for fetching data using JOIN
 --poor attempt of fetching loans with both the book, book details and member details attached
