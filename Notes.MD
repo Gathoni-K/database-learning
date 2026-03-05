@@ -289,6 +289,26 @@ The clause is used to derive a table from one or more other tables given in a co
     SELECT column_name FROM table_name
     JOIN table_two ON table_one.column_name = table_two.column_name;
 
+
+    SELECT
+    table_one.column_name,
+    table_two.column_name,
+    <!-- we prefix with the table name so as to avoid ambiguity -->
+    FROM junction_table
+    <!-- the table holding the foreign keys -->
+    JOIN table_one
+        ON junction_table.foreign_key = table_one.primary_key
+        <!-- this is matching the FK to PK -->
+    JOIN table_two
+        ON junction_table.foreign_key = table_two.primary_key;
+
+    <!-- 
+    -In the SELECT command, list every column needed and prefix with the table name
+    -FROM represents our starting point, usually the table holding the foreign keys
+    -ON - always connect the foreign key in one table to the primary key it references in the other
+     -->
+
+
 -Used when one needs data from more than one table at once.
 
 -It connects two tables together based on a related column between them.
