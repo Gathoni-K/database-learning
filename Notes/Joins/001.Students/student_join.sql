@@ -4,12 +4,12 @@ Write a query showing student's name along their courses.
 
 */
 
-SELECT
-courses.name,
-students.name
-FROM courses
-JOIN courses
-    ON students.course_name = courses.name;
+-- SELECT
+-- courses.name,
+-- students.name
+-- FROM courses
+-- JOIN courses
+--     ON students.course_name = courses.name;
 
 /*
 Problems with our code:
@@ -28,6 +28,10 @@ we use id instead of name, why?
 Normalization.
 -Never store the same information twice if it can be avoided.
 
-
-
 */
+SELECT 
+students.name,
+courses.course_name
+FROM students
+JOIN courses
+    ON students.course_id = courses.course_id;

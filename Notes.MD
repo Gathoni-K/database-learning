@@ -287,6 +287,8 @@ The clause is used to derive a table from one or more other tables given in a co
 ### JOIN
 
     SELECT column_name FROM table_name
+    <!-- whatever is listed in SELECT will always be displayed
+    once a table is joined, every single column in that table is available for one to select freely. -->
     JOIN table_two ON table_one.column_name = table_two.column_name;
 
 
@@ -336,6 +338,32 @@ Types of joins:
     -lists out possible combinations of the data.
 
     7.Natural - automatic join.
+
+**Joining on multiple columns.**
+
+- A JOIN on multiple columns means that 2 / more conditions must be satisfied for rows to match between tables.
+  
+-Instead of joining on a single key (id), specify multiple keys in the ON clause by combining them with AND.
+
+-It is simply telling SQL 'Only connect the two rows if more than one thing matches.'
+
+    SELECT * FROM table_one
+    JOIN table_two
+    ON table_one.A = table_two.A
+    AND table_one.B = table_two.B
+
+    <!-- used when we want two columns to match simultaneously, it is still one join -->
+
+When is this used:
+
+1.When one column is not enough, i.e. joining first_name and last_name used to reliable join a student's name.
+
+2.When data is recorded at multiple levels.
+
+3.When a key is a composite key, a primary key being a combination of columns.
+
+
+
 
 ### GROUP BY
 
@@ -501,3 +529,21 @@ Types of joins:
     SELECT * FROM modified_rows;
     <!-- note the RETURNING command here as discussed above is used to allow modified rows to be passed into the next part of the query. -->
     
+
+
+# ALIASES.
+
+-Is a temporary name given to a table or column.
+
+-This helps in simplifying complex queries, improving readability and makes it easier to reference tables and columns.
+
+    SELECT column_name AS alias_name FROM table;
+
+        OR
+
+    SELECT column_name alias_name FROM table;
+
+Used when:
+1. column names clash.
+2. column names are ugly.
+3. calculating something new.
