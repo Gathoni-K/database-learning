@@ -186,7 +186,7 @@ Table constraints are written separately at the bottom of the table definition a
 
 -Do not allow delete if the children still exist, e.g. one cannot delete a member with loans.
 
--The default behavious is similar to RESTRICT, rejects the delete if related rows exist.
+-The default behaviour is similar to RESTRICT, rejects the delete if related rows exist.
 
 
 # DATA MANIPULATION.
@@ -547,3 +547,58 @@ Used when:
 1. column names clash.
 2. column names are ugly.
 3. calculating something new.
+
+
+# AGGREGATE FUNCTIONS.
+
+## 1.COUNT
+-used to count the number of rows
+
+    SELECT COUNT(*) FROM table_name;
+    SELECT COUNT(column_name) FROM table_name;
+    <!-- second one is used when we want to target a specific column -->
+
+## 2.SUM
+-adds up values in a column
+
+    SELECT SUM(column_name) FROM table_name;
+
+## 3.AVG
+-used to calculate the average of a column.
+
+    SELECT AVG(column_name) FROM table_name;
+
+## 4.MAX/MIN
+-finds the highest/lowest value
+
+    SELECT MAX(column_name) FROM table_name;
+
+-The general template for aggregate functions would be:
+
+    SELECT AGGREGATE_FUNCTION(column_name)
+    <!-- every other column listed with our aggregate will need to be put in the GROUP BY clause as well
+     -->
+    FROM table_name
+    GROUP BY column_name
+    <!-- any column inside our SELECT not inside an aggregate function must appear in the GROUP BY clause -->
+    WHERE condition
+    <!-- filters rows before grouping, cannot be used on aggregate function, will cause an error, if it is a plain column condition, this is used -->
+    HAVING condition;
+    <!-- filters on the result of an aggregate, comes after the GROUP BY clause, whatever goes here is something that should only exist after the grouping has happened, therefore an aggregate function condition is always used. -->
+
+    SELECT
+    grouping_column,         
+     -- the column you want to see results broken down by e.g departments.name
+    AGGREGATE_FUNCTION(column_to_aggregate)   
+    -- the column you want to calculate on e.g SUM(salary)
+    FROM primary_table            -- the table that holds the aggregate column e.g employees
+    JOIN secondary_table          -- the table that holds the grouping column e.g departments
+        ON primary_table.foreign_key = secondary_table.id   -- the bridge between the two tables
+    WHERE condition               -- optional, filters rows BEFORE grouping e.g WHERE salary > 1000
+    GROUP BY grouping_column      -- must match what you put in SELECT outside the aggregate
+    HAVING aggregate_condition    -- optional, filters AFTER grouping e.g HAVING SUM(salary) > 50000
+    ORDER BY column_name;         -- optional, sorts the final result e.g ORDER BY SUM(salary) DESC
+
+    <!-- 
+    the grouping_column appears in both SELECT and GROUP BY,
+    JOIN can be skipped if everything needed is in one table -->
