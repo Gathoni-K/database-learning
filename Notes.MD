@@ -602,3 +602,104 @@ Used when:
     <!-- 
     the grouping_column appears in both SELECT and GROUP BY,
     JOIN can be skipped if everything needed is in one table -->
+
+# INDEXES.
+
+## PostgreSQL Indexes: A Quick Reference Guide
+
+Indexes are specialized data structures (typically B-Trees) that allow the database to find specific rows much faster than scanning the entire table. Think of it like a book's index—instead of reading every page to find "B-Trees," you go to the back and jump straight to the page number.
+
+---
+
+### 1. Common Index Types
+
+PostgreSQL offers several index types, each suited for different data patterns and queries.
+
+| Type | Best For | Description |
+| --- | --- | --- |
+| **B-Tree** | Comparisons (`<`, `<=`, `=`, `>=`, `>`) | The **default**. High performance for sorted data and range queries. |
+| **Hash** | Equality (`=`) only | Faster than B-Tree for simple lookups, but doesn't support ranges or sorting. |
+| **GIN** | Arrays, JSONB, Full-Text | **Generalized Inverted Index**. Best when a single column contains multiple values. |
+| **GiST** | Geometry, Ranges | **Generalized Search Tree**. Useful for geographic (PostGIS) or interval data. |
+| **BRIN** | Massive, naturally sorted tables | **Block Range Index**. Very small; stores min/max values for blocks of pages. |
+
+---
+
+### 2. Core Commands
+
+**Create a Standard Index**
+
+```sql
+CREATE INDEX idx_users_email ON users (email);
+
+```
+
+**Create a Unique Index**
+Ensures no two rows have the same value (Postgres automatically creates these for Primary Keys).
+
+```sql
+CREATE UNIQUE INDEX idx_users_username ON users (username);
+
+```
+
+**Dropping an Index**
+
+```sql
+DROP INDEX idx_users_email;
+
+```
+
+---
+
+### 3. Advanced Indexing Strategies
+
+#### Composite Indexes
+
+Indexes on multiple columns. The **order of columns matters**.
+
+* **Rule of thumb:** Put the column used in `=` filters first, and range filters second.
+
+```sql
+CREATE INDEX idx_orders_customer_date ON orders (customer_id, order_date);
+
+```
+
+#### Partial Indexes
+
+Indexes only a subset of the table. This saves space and improves speed if you usually query a specific "slice" of data.
+
+```sql
+-- Only index active users
+CREATE INDEX idx_active_users ON users (last_login) 
+WHERE status = 'active';
+
+```
+
+#### Covering Indexes (The `INCLUDE` Clause)
+
+Allows the index to provide the answer without ever touching the actual table (Index-Only Scan).
+
+```sql
+CREATE INDEX idx_balance_covering ON accounts (user_id) INCLUDE (balance);
+
+```
+
+---
+
+### 4. Best Practices & Pro-Tips
+
+* **Don't Over-Index:** Every index speeds up **reads** but slows down **writes** (INSERT/UPDATE/DELETE) because the index must also be updated.
+* **Index Foreign Keys:** Postgres does not automatically index FKs. You should almost always do this to speed up JOINs.
+* **Use `CONCURRENTLY`:** In production, creating an index locks the table. Use `CREATE INDEX CONCURRENTLY` to build it without blocking writes.
+* **Monitor Usage:** Use the `pg_stat_user_indexes` view to find unused indexes that are just wasting disk space.
+
+---
+
+### 5. Performance Analysis
+
+To see if your index is actually being used, prepend your query with `EXPLAIN ANALYZE`:
+
+```sql
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
+
+```
