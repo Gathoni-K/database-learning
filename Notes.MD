@@ -605,8 +605,6 @@ Used when:
 
 # INDEXES.
 
-## PostgreSQL Indexes: A Quick Reference Guide
-
 Indexes are specialized data structures (typically B-Trees) that allow the database to find specific rows much faster than scanning the entire table. Think of it like a book's index—instead of reading every page to find "B-Trees," you go to the back and jump straight to the page number.
 
 ---
