@@ -11,9 +11,20 @@ VALUES (
 DELETE FROM books WHERE title = 'Babel';
 
 --query for counting the number of books each member has borrowed
-SELECT 
-members.name
-books.title
-COUNT(loans.)
+SELECT
+members.name,
+COUNT(*)
 FROM loans
-GROUP BY members.name, books.title;
+JOIN members
+ON loans.member_id = members.id
+GROUP BY members.name
+ORDER BY COUNT(*) DESC;
+
+--query for finding the most borrowed book
+SELECT
+    books.title,
+    COUNT(*)
+FROM loans
+JOIN books ON loans.book_id = books.id
+GROUP BY books.title
+ORDER BY COUNT(*) DESC;

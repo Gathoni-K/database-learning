@@ -553,6 +553,7 @@ Used when:
 
 ## 1.COUNT
 -used to count the number of rows
+-answers 'How many?'
 
     SELECT COUNT(*) FROM table_name;
     SELECT COUNT(column_name) FROM table_name;
@@ -560,6 +561,7 @@ Used when:
 
 ## 2.SUM
 -adds up values in a column
+-answers 'How much?'
 
     SELECT SUM(column_name) FROM table_name;
 
@@ -591,7 +593,7 @@ Used when:
      -- the column you want to see results broken down by e.g departments.name
     AGGREGATE_FUNCTION(column_to_aggregate)   
     -- the column you want to calculate on e.g SUM(salary)
-    FROM primary_table            -- the table that holds the aggregate column e.g employees
+    FROM primary_table            -- the table that holds the aggregate column, the thing being counted
     JOIN secondary_table          -- the table that holds the grouping column e.g departments
         ON primary_table.foreign_key = secondary_table.id   -- the bridge between the two tables
     WHERE condition               -- optional, filters rows BEFORE grouping e.g WHERE salary > 1000
