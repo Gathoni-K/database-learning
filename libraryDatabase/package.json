@@ -1,13 +1,13 @@
 {
   "name": "librarydatabase",
   "version": "1.0.0",
-  "description": "",
+  "description": "A learning project built to develop a solid understanding of SQL fundamentals using PostgreSQL, before moving into backend development. The project is structured around a simple library management system with books, members, loans, and fines.",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
-    },
+"dev": "tsx watch src/server.ts",
+"build": "tsc",
+"start": "node dist/server.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.3.0",
+    "@types/node": "^25.4.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
