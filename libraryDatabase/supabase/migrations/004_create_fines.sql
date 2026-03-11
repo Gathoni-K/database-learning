@@ -4,5 +4,5 @@ CREATE TABLE fines(
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     price INT NOT NULL,
     member_id UUID REFERENCES members(id) ON DELETE RESTRICT,
-    due_date UUID REFERENCES loans(due_date) ON DELETE RESTRICT
+    loans_id UUID REFERENCES loans(id) ON DELETE RESTRICT
 );

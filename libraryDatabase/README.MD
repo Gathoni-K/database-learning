@@ -203,5 +203,61 @@ No backend is needed at this stage. You can run everything directly against a Po
 ## Next Steps
 
 - Set up a live PostgreSQL database and run the schema
-- Build a backend API (Node.js + Express or Python + FastAPI) to expose queries as endpoints
+- 
+- Build a backend API (Node.js + Express) to expose queries as endpoints
 - Add a simple frontend interface for librarians to interact with the system
+
+
+
+# PHASE 2.
+
+## CONNECTING OUR DATABASE TO THE BACKEND.
+
+### Setup.
+
+-Installed the supabase CLI using:
+
+    yay -Syu supabase bin
+
+-Confirm installation using:
+
+    supabase -v
+
+-Navigate to project folder then run:
+
+    supabase init
+
+-Link to Supabase using:
+
+    supabase link
+
+-For this to work, ensure that you are logged in and have your access token, do so by:
+
+    supabase login
+
+-Generate a new access token that will be used, then run the link command once again.
+
+-Select the project you want to link to.
+
+-One token = access to entire Supabase account and should thus not be pushed to Github.
+
+-The correct flow is thus:
+
+    supabase login (token)
+      ↓
+    authenticates your ACCOUNT
+        ↓
+    supabase link
+        ↓
+    picks a specific PROJECT from your account
+
+-On Supabase, connect our database, we will use DIrect connection.
+
+-Copy credentials in .env file, ensure this file is included in our '.gitignore'
+
+-Install pg using:
+
+    npm install pg
+    npm install --save-dev @types/pg
+
+-Create the db.ts file under 'src/config'

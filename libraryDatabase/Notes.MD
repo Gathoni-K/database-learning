@@ -703,3 +703,5 @@ To see if your index is actually being used, prepend your query with `EXPLAIN AN
 EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
 
 ```
+
+
