@@ -453,17 +453,23 @@ Tech stack : Node.js with Express
 
 -The central error handler matches the correct status codes.
 
--The general template of our errorHandle is:
+-The general template of our errorHandler is:
 
     import { Request, Response, NextFunction } from 'express';
 
     export const errorHandler = (
         error: any,
+        //error object thrown anywhere in the app
         req: Request,
+        //the incoming request
         res: Response,
+        //what is used to send the response
         next: NextFunction
+        //required by Express to recognize this as error middleware
     ) => {
         const status = error.status || 500;
+        // 'error' - reads whatever status the service attached
+        //falls back to 500 if nothing was attached
         const message = error.message || 'INternal server error';
     
     res.status(status).json({ message });
@@ -472,9 +478,11 @@ Tech stack : Node.js with Express
 
 -How this will change our controller functions:
 
+    //Remember to import the 'NextFunction' from express
+
     export const getItemById = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { id } = req.params;
+            const { id } = req.params as { id: string };
             const result = await service.getById(id);
             res.status(200).json(result);
         }
@@ -488,3 +496,43 @@ Tech stack : Node.js with Express
 
 1.Controller catches the error, it passes it to the next, which then passes it to our middleware, this ensures a consistent response sent to the client.
 
+
+## Writing Routes Functions.
+
+- Are our URL path definitions.
+
+-The general template would be:
+
+    import { Router } from 'express';
+    import * as controller from '../controllers/table.controller';
+
+    const router = Router();
+
+    //Read
+    router.get('/', controller.getAll);
+    router.get('/:id', controller.getById);
+
+    //Create
+    router.post('/', controller.create);
+
+    //Update
+    router.patch('/:id', controller.update);
+
+    //Delete
+    router.delete('/:id', controller.functionNameToDelete);
+
+    export default router;
+
+    //the part that goes in controller.functionName is the name of functions in the controllers folder
+
+
+    ```
+    The pattern per HTTP method
+
+    GET - read data
+    POST - creating data
+    PATCH - partial update
+    PUT - full replacement
+    DELETE - remove data
+
+    ```
