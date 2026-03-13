@@ -20,13 +20,23 @@ export const getAll = async () => {
 // function for fetching all books
 
 export const getById = async(id: string) => {
-    return await db.select().from(books)
+    const result = await db.select().from(books)
     .where(eq(books.id, id));
+
+    if (result.length === 0) {
+        const error: any = new Error('Record not found');
+        error.status = 404;
+        throw error;
+    }
+    //displaying the specific error message
+
+    return result[0];
 };
 //function for fetching books by id
 
 export const addBook = async( data: typeof books.$inferInsert) => {
-    return await db.insert(books).values(data)
+    return await db.insert(books)
+    .values(data)
     .returning();
 };
 /*
@@ -34,16 +44,34 @@ export const addBook = async( data: typeof books.$inferInsert) => {
 */
 
 export const updateBook = async (id: string, data: Partial<typeof books.$inferInsert>) => {
-    return await db.update(books)
+    const result =  await db.update(books)
     .set(data)
     .where(eq(books.id, id))
     .returning();
+
+    if(result.length == 0 ){
+        const error: any = new Error ('Record not found');
+        error.status = 404;
+        throw error;
+    }
+
+    return result[0];
 };
 //function for updating books
 
 export const deleteBook = async (id: string) => {
-    return await db.delete(books).where(eq(books.id, id))
+    const result = await db.delete(books)
+    .where(eq(books.id, id))
     .returning();
+
+    if(result.length === 0) {
+        const error: any = new Error('Record not found');
+        error.status = 404;
+        throw error;
+    }
+
+    return result [0];
+
 };
 //function for deleting a book
 

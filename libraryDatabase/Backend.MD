@@ -9,6 +9,9 @@ Tech stack : Node.js with Express
     import express from 'express';
     import cors from 'cors';
     import dotenv from 'dotenv';
+    import //routes here
+    import { errorHandler } from '/pathtoMiddlewareFolder';
+
 
     dotenv.config();
 
@@ -19,6 +22,9 @@ Tech stack : Node.js with Express
     app.use(express.json());
 
     // Routes go here
+
+    app.use(errorHandler);
+    //the error handler always comes after all the routes
 
     app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
@@ -270,40 +276,65 @@ Tech stack : Node.js with Express
 
 -The general template for these files:
 
-    import { db } from '/pathTo db.ts';
-    import { tableName } from 'pathToModels folder';
+    import { db } from '../config/db';
+    import { tableName } from '../models';
     import { eq } from 'drizzle-orm';
+    
 
-    //get all
+    // GET ALL
     export const getAll = async () => {
-        return await db.select().from(tableName);
-    }
+    return await db.select().from(tableName);
+    };
 
-    //get one
+    // GET BY ID
     export const getById = async (id: string) => {
-        return await db.select().from(tableName)
+    const result = await db.select().from(tableName)
         .where(eq(tableName.id, id));
+
+    if (result.length === 0) {
+        const error: any = new Error('Record not found');
+        error.status = 404;
+        throw error;
     }
 
-    //create
+    return result[0];
+    };
+
+    // CREATE
     export const create = async (data: typeof tableName.$inferInsert) => {
-        return await db.insert(tableName).values(data).returning();
-    }
+    return await db.insert(tableName).values(data).returning();
+    };
 
-    //update
+    // UPDATE
     export const update = async (id: string, data: Partial<typeof tableName.$inferInsert>) => {
-        return await db.update(tableName)
+    const result = await db.update(tableName)
         .set(data)
         .where(eq(tableName.id, id))
         .returning();
+
+    if (result.length === 0) {
+        const error: any = new Error('Record not found');
+        error.status = 404;
+        throw error;
     }
 
-    //delete
-    export const delete = async (id : string) => {
-        return await db.delete(tableName)
+    return result[0];
+    };
+
+    // DELETE
+    export const remove = async (id: string) => {
+    const result = await db.delete(tableName)
         .where(eq(tableName.id, id))
         .returning();
+
+    if (result.length === 0) {
+        const error: any = new Error('Record not found');
+        error.status = 404;
+        throw error;
     }
+
+    return result[0];
+    };
 
 -The general Drizzle Query pattern would be:
 
@@ -325,3 +356,135 @@ Tech stack : Node.js with Express
 -We use '.returning()' for INSERT, UPDATE and DELETE commands.
 
 -The rule of thumb is that if the function needs to modify data then '.returning' is used.
+
+
+## Writing Controller Functions.
+
+-These are functions that handle requests.
+
+-Only thinks about what cam ein from HTTP and what goes out as HTTP.
+
+-Their general template is:
+
+    import { Request, Response } from 'express';
+    import * as service from '../services/tableName.service';
+
+    export const functionName = async (req: Request, res: Response) => {
+        try{
+            1.extract what is needed from the request
+            2.call the service function
+            3.send the response 
+        } catch (error) {
+            res.status(500).json({ message: 'error message' });
+        }
+    };
+
+-How they change per CRUD operation:
+
+    //Get all
+    export const getAll = async (req: Request, res: Response) => {
+        try {
+            const result = await service.getAll();
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({ message: 'Failed to fetch... ' });
+        }
+    };
+
+    //get by id
+
+    -extract id from URL params
+
+    export const getById = async (req: Request, res: Response) => {
+        try{
+            const { id } = req.params;
+            const result = await service.getById(id);
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({ message: 'Failed to fetch... ' });
+        }
+    };
+
+    //create
+
+    -export data from request body
+
+    export const addItem = async (req: Request, res: Response) => {
+        try {
+            const data = req.body;
+            const result = await service.addItem(data);
+            res.status(201).json(result);
+        } catch (error) {
+            res.status(500).json({ message: 'Failed to add ...' });
+        }
+    };
+
+    //update
+
+    -extract id from params and data from body
+
+    export const updateItem = async (req: Request, res: Response) => {
+        try{
+            const { id } = req.params;
+            const data = req.body;
+            const result = await service.updateItem(id, data);
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({ message: 'Failed to...' });
+        }
+    };
+
+    //delete
+
+    -extract id from params only
+
+    export const deleteItem(req: Request, res: Response) => {
+        try{
+            const { id } = req.params;
+            const result = await service.deleteItem(id);
+            res.status(200).json....
+        }
+        catch(error) {
+            ....
+        }
+    };
+
+-In our code, we are not handling the exceptions properly, to handle this, we create a central error handle that will be stored in the middleware.
+
+-The central error handler matches the correct status codes.
+
+-The general template of our errorHandle is:
+
+    import { Request, Response, NextFunction } from 'express';
+
+    export const errorHandler = (
+        error: any,
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        const status = error.status || 500;
+        const message = error.message || 'INternal server error';
+    
+    res.status(status).json({ message });
+    };
+
+
+-How this will change our controller functions:
+
+    export const getItemById = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params;
+            const result = await service.getById(id);
+            res.status(200).json(result);
+        }
+        catch (error) {
+            next(error);
+            //the error is passed to the central handler
+        }
+    }
+
+-How errors flow:
+
+1.Controller catches the error, it passes it to the next, which then passes it to our middleware, this ensures a consistent response sent to the client.
+
