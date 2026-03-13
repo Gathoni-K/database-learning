@@ -70,7 +70,7 @@ Tech stack : Node.js with Express
 
 -Our ORM of choice being Prisma.
 
-## Working with ORMs.
+## Working with ORMs
 
 -ORMs are mostly used for the daily grind, and Raw SQL is used for heavy-lifting.
 
@@ -84,7 +84,7 @@ Tech stack : Node.js with Express
 
 3.Refactoring safety - when a column is renamed in our schema, TS will show us every broken query across our entire database
 
-4.Migrations management, schema changes are tracked, versioned and reproducible across environemnts.
+4.Migrations management, schema changes are tracked, versioned and reproducible across environments.
 
 -ORM of choice is Drizzle, because it is TS-based.
 
@@ -95,7 +95,7 @@ Tech stack : Node.js with Express
 
 -Set up our '.env' file using the connection string.
 
--Create the drizzle.congig.ts file, this file needs to know where our schema lives, where to put generated migrations, what database dialect is being used and how to connect our DB.
+-Create the drizzle.config.ts file, this file needs to know where our schema lives, where to put generated migrations, what database dialect is being used and how to connect our DB.
 
 -At the root folder, create the 'drizzle.config.ts' and it should look something like:
 
@@ -247,6 +247,23 @@ Tech stack : Node.js with Express
 
 -This is handled in the 'services' folder, the general rule being one file per table.
 
+-Service functions answer the question 'What needs to happen for this action to complete?'
+
+-An example would be, issuing a book to a member, the raw query would be:
+
+    INSERT INTO loans...
+
+-But the business logic answers these questions:
+
+    1.Does the book exist?
+    2.Are there copies available?
+    3.Is the member already borrowing this book?
+    4.Reduce copies_available by 1.
+    5.Create the loan record.
+    6.Return the loan details.
+
+-The service functions should reflect real library actions.
+
 -The general naming convention would be:
 
     tableName.service.ts
@@ -259,7 +276,7 @@ Tech stack : Node.js with Express
 
     //get all
     export const getAll = async () => {
-        return await.db.select().from(tableName);
+        return await db.select().from(tableName);
     }
 
     //get one
@@ -276,4 +293,35 @@ Tech stack : Node.js with Express
     //update
     export const update = async (id: string, data: Partial<typeof tableName.$inferInsert>) => {
         return await db.update(tableName)
+        .set(data)
+        .where(eq(tableName.id, id))
+        .returning();
     }
+
+    //delete
+    export const delete = async (id : string) => {
+        return await db.delete(tableName)
+        .where(eq(tableName.id, id))
+        .returning();
+    }
+
+-The general Drizzle Query pattern would be:
+
+    //SELECT
+    db.select().from(table)
+
+    //SELECT with filter
+    db.select().from(table).where(eq(table.column, value))
+
+    //INSERT
+    db.insert(table).value({ column: value })
+
+    //UPDATE
+    db.update(table).set({ column: value }).where(eq(table.column, value))
+
+    //DELETE
+    db.delete(table).where(eq(table.column, value))
+
+-We use '.returning()' for INSERT, UPDATE and DELETE commands.
+
+-The rule of thumb is that if the function needs to modify data then '.returning' is used.
