@@ -371,6 +371,15 @@ Tech stack : Node.js with Express
     and()      →  combines multiple conditions
     new Date() →  today's date
 
+-Syntax for combining conditions:
+
+    .where(
+        .and(
+            condition1,
+            condition2
+        )
+    );
+
 
 ## Writing Controller Functions.
 

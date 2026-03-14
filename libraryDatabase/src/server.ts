@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
 import bookRoutes from './routes/books.routes';
 import memberRoutes from './routes/members.routes';
+import loanRoutes from './routes/loans.routes';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api/books', bookRoutes);
 // "any request that starts with /api/books → hand it to bookRoutes"
 app.use('/api/members', memberRoutes);
+app.use('/api/loans', loanRoutes);
 
 app.use(errorHandler);
 
