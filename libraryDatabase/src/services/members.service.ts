@@ -18,7 +18,53 @@ export const getAllMembers = async () => {
 //function for selecting all members
 
 export const getMemberById = async (id: string) => {
-    return await db.select().from(members)
+    const result =  await db.select().from(members)
     .where(eq(members.id , id));
+
+    if (result.length === 0) {
+        const error: any = new Error('Record not found');
+        error.status = 404;
+        throw error;
+    }
+
+    return result[0];
 };
 // function for selecting members by id
+
+export const registerMember = async (data: typeof members.$inferInsert) => {
+    return await db.insert(members)
+    .values(data)
+    .returning();
+};
+//function for adding members
+
+export const updateMembers = async (id: string, data: Partial<typeof members.$inferInsert>) => {
+    const result = await db.update(members)
+    .set(data)
+    .where(eq(members.id, id))
+    .returning();
+
+    if(result.length === 0) {
+        const error: any = new Error ('Record not found');
+        error.status = 404;
+        throw error;
+    }
+
+    return result[0];
+};
+
+export const deleteMembers = async (id: string) => {
+    const result = await db.delete(members)
+    .where(eq(members.id, id))
+    .returning();
+
+    if(result.length === 0) {
+        const error: any = new Error ('Record not found');
+        error.status = 404;
+        throw error;
+    }
+
+    return result [0];
+};
+//function for deleting members
+

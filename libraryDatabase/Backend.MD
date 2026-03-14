@@ -307,6 +307,7 @@ Tech stack : Node.js with Express
 
     // UPDATE
     export const update = async (id: string, data: Partial<typeof tableName.$inferInsert>) => {
+        //the partial exists here to tell our compiler that we are partially changing the data
     const result = await db.update(tableName)
         .set(data)
         .where(eq(tableName.id, id))
@@ -396,8 +397,10 @@ Tech stack : Node.js with Express
     -extract id from URL params
 
     export const getById = async (req: Request, res: Response) => {
+        //name of the function here should match that defined in services
         try{
-            const { id } = req.params;
+            const { id } = req.params as { id: string};
+            //specify the id type everywhere we use id
             const result = await service.getById(id);
             res.status(200).json(result);
         } catch (error) {
@@ -536,3 +539,24 @@ Tech stack : Node.js with Express
     DELETE - remove data
 
     ```
+
+# POSTMAN 101.
+
+-Postman is a tool for sending HTTP requests to our API without needing a frontend.
+
+-Ensure the server is running.
+
+-Enter the URL and it should follow the format below:
+
+    http://localhost:3000/api/urlName
+
+-Remember to set the proper HTTP method as per the request.
+
+-Ensure the mock data is in stored in the database, this is done by pasting the mock data into the SQL editor in Supabase.
+
+-To test a specific endpoint, we need the specific ID such that the URL looks something like this:
+
+    http://localhost:3000/api/urlName/specificID
+
+-The methods that need the specific ID are GET, PATCH and DELETE.
+

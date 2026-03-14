@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
 import bookRoutes from './routes/books.routes';
+import memberRoutes from './routes/members.routes';
 
 dotenv.config();
 
@@ -14,6 +15,8 @@ app.use(express.json());
 
 // Routes go here
 app.use('/api/books', bookRoutes);
+// "any request that starts with /api/books → hand it to bookRoutes"
+app.use('/api/members', memberRoutes);
 
 app.use(errorHandler);
 
