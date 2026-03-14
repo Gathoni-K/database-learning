@@ -335,7 +335,13 @@ Tech stack : Node.js with Express
     }
 
     return result[0];
+    //used when an operation is targeting a specific record
+    //if fetching one thing, return as above, though if fetching many things, use:
+    return result;
+
     };
+
+-The rule for when to throw 404 is when we are targeting a specific record, if we are fetching a collection, an empty array is just fine.
 
 -The general Drizzle Query pattern would be:
 
@@ -357,6 +363,13 @@ Tech stack : Node.js with Express
 -We use '.returning()' for INSERT, UPDATE and DELETE commands.
 
 -The rule of thumb is that if the function needs to modify data then '.returning' is used.
+
+-Additional Drizzle operators include:
+
+    isNull()   →  checks if a column is null
+    lt()       →  less than (for date comparison)
+    and()      →  combines multiple conditions
+    new Date() →  today's date
 
 
 ## Writing Controller Functions.
@@ -560,3 +573,18 @@ Tech stack : Node.js with Express
 
 -The methods that need the specific ID are GET, PATCH and DELETE.
 
+-When sending data to the database, 'raw + JSON ' is needed
+
+    GET     →  no body  (just reading)
+    DELETE  →  no body  (just an id in the URL)
+
+    POST    →  body needed  raw + JSON
+    PATCH   →  body needed  raw + JSON
+    PUT     →  body needed  raw + JSON
+
+-The Params tab is used for filtering or searching.
+
+    filtering    →  /api/books?genre=Fiction
+    searching    →  /api/books?search=Alchemist
+    pagination   →  /api/books?page=1&limit=10
+    sorting      →  /api/books?sortBy=title
