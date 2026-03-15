@@ -279,6 +279,7 @@ Tech stack : Node.js with Express
     import { db } from '../config/db';
     import { tableName } from '../models';
     import { eq } from 'drizzle-orm';
+    //import all the necessary functions
     
 
     // GET ALL

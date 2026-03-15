@@ -1,5 +1,5 @@
-import { pgTable, unique, uuid, varchar, integer, foreignKey, timestamp } from "drizzle-orm/pg-core"
-import { sql } from "drizzle-orm"
+import { pgTable, unique, uuid, varchar, integer, foreignKey, timestamp, boolean } from "drizzle-orm/pg-core"
+// import { sql } from "drizzle-orm"
 
 
 
@@ -45,6 +45,7 @@ export const fines = pgTable("fines", {
 	price: integer().notNull(),
 	memberId: uuid("member_id"),
 	loansId: uuid("loans_id"),
+	paid: boolean().notNull().default(false)
 }, (table) => [
 	foreignKey({
 			columns: [table.loansId],

@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/errorHandler';
 import bookRoutes from './routes/books.routes';
 import memberRoutes from './routes/members.routes';
 import loanRoutes from './routes/loans.routes';
+import fineRoutes from './routes/fines.routes';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use('/api/books', bookRoutes);
 // "any request that starts with /api/books → hand it to bookRoutes"
 app.use('/api/members', memberRoutes);
 app.use('/api/loans', loanRoutes);
+app.use('/api/fines', fineRoutes);
 
 app.use(errorHandler);
 
