@@ -15,6 +15,10 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    res.json({ message: 'Library Management System API is running' });
+});
+
 // Routes go here
 app.use('/api/books', bookRoutes);
 // "any request that starts with /api/books → hand it to bookRoutes"
