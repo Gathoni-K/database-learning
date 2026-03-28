@@ -8,8 +8,9 @@
 */
 
 import { db } from '../config/db';
-import { fines, loans, members } from '../models';
+import { fines, loans } from '../models';
 import { eq } from 'drizzle-orm';
+import { BadRequestError, NotFoundError } from '../utils/errors';
 
 export const getAllFines = async () => {
     return await db.select().from(fines);
@@ -20,9 +21,7 @@ export const getFinesById = async (id: string) => {
     .where(eq(fines.id, id));
 
     if (result.length === 0) {
-        const error: any = new Error('Record not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Fine not found.")
     }
 } ;
 
@@ -36,9 +35,7 @@ export const calculateFine = async (loanId: string) => {
     const loan = loanResult[0];
 
         if (!loan) {
-    const error: any = new Error('Loan not found');
-    error.status = 404;
-    throw error;
+    throw new BadRequestError("Loan not found.")
     }
 
     // 2. calculate days overdue
@@ -66,9 +63,7 @@ export const getMembersFine = async (memberId: string) => {
     .where(eq(fines.id, memberId));
 
     if (memberFine.length === 0){
-        const error: any = new Error('Record not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Fine not found.")
     }
 
     return memberFine;
@@ -82,15 +77,11 @@ export const payFine = async (fineId: string) => {
     const fine = existing[0];
 
     if (!fine) {
-        const error: any = new Error('Fine not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Fine not found");
     }
 
     if (fine.paid === true) {
-        const error: any = new Error('Fine already paid');
-        error.status = 400;
-        throw error;
+        throw new BadRequestError("Fine already paid.")
     }
 
     // update paid to true

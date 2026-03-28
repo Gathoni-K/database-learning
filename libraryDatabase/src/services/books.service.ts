@@ -13,6 +13,7 @@ File containing the business logic for the books table
 import { db } from '../config/db';
 import { books } from '../models/schema';
 import { eq } from 'drizzle-orm';
+import { NotFoundError, BadRequestError } from '../utils/errors';
 
 export const getAll = async () => {
     return await db.select().from(books);
@@ -24,9 +25,7 @@ export const getById = async(id: string) => {
     .where(eq(books.id, id));
 
     if (result.length === 0) {
-        const error: any = new Error('Record not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Book not found.");
     }
     //displaying the specific error message
 
@@ -50,9 +49,7 @@ export const updateBook = async (id: string, data: Partial<typeof books.$inferIn
     .returning();
 
     if(result.length == 0 ){
-        const error: any = new Error ('Record not found');
-        error.status = 404;
-        throw error;
+        throw  new BadRequestError("Book not found");
     }
 
     return result[0];
@@ -65,9 +62,7 @@ export const deleteBook = async (id: string) => {
     .returning();
 
     if(result.length === 0) {
-        const error: any = new Error('Record not found');
-        error.status = 404;
-        throw error;
+        throw  new BadRequestError("Book not found.");
     }
 
     return result [0];

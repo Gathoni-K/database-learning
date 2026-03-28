@@ -6,15 +6,22 @@ JSON response.
 */
 
 import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../utils/errors';
+
 
 export const errorHandler = (
-    error: any,
+    error: unknown,
     req: Request,
     res: Response,
     next: NextFunction
-)=> {
-    const status = error.status || 500;
-    const message = error.message || 'Internal Server error';
+ ) => {
+    if (error instanceof AppError) {
+        return res.status(error.status).json({ message: error.message });
+    }
 
-    res.status(status).json({ message });
-};
+    res.status(500).json({ message: 'Internal Server Error'});
+ };
+
+
+
+

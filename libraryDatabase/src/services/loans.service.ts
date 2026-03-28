@@ -1,6 +1,7 @@
 import { db } from '../config/db';
 import { loans } from '../models';
 import { eq, isNull, and, lt } from 'drizzle-orm';
+import { NotFoundError } from '../utils/errors';
 
 export const getAllLoans = async () => {
     return await db.select().from(loans);
@@ -19,9 +20,7 @@ export const getLoansById = async (id: string) => {
                     .where(eq(loans.id, id));
 
         if(result.length === 0) {
-            const error: any = new Error('Record not found');
-            error.status = 404;
-            throw error;
+           throw new NotFoundError("Loan not found");
         }
 
         return result[0];
@@ -35,9 +34,7 @@ export const updateLoan = async (id: string, data: Partial<typeof loans.$inferIn
     .returning();
 
     if (result.length === 0) {
-        const error: any = new Error('Record not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Loan not found");
     }
 
     return result[0];
@@ -50,9 +47,7 @@ export const deleteLoan = async (id: string) => {
     .returning();
 
     if (result.length === 0) {
-        const error: any = new Error('Record not found');
-        error.status = 404;
-        throw error;
+       throw new NotFoundError("Loan not found");
     }
     return result [0];
     //return first loan

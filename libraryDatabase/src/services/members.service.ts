@@ -11,6 +11,7 @@
 import { db } from '../config/db';
 import { members } from '../models/schema';
 import { eq } from 'drizzle-orm';
+import { NotFoundError } from '../utils/errors';
 
 export const getAllMembers = async () => {
     return await db.select().from(members);
@@ -22,9 +23,7 @@ export const getMemberById = async (id: string) => {
     .where(eq(members.id , id));
 
     if (result.length === 0) {
-        const error: any = new Error('Record not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Member not found.");
     }
 
     return result[0];
@@ -45,9 +44,7 @@ export const updateMembers = async (id: string, data: Partial<typeof members.$in
     .returning();
 
     if(result.length === 0) {
-        const error: any = new Error ('Record not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Member not found.");
     }
 
     return result[0];
@@ -59,9 +56,7 @@ export const deleteMembers = async (id: string) => {
     .returning();
 
     if(result.length === 0) {
-        const error: any = new Error ('Record not found');
-        error.status = 404;
-        throw error;
+        throw new NotFoundError("Record not found");
     }
 
     return result [0];
