@@ -1,5 +1,8 @@
 /*
 -This is our central error handler
+-It reads whatever status was attached to the error, reads whatever
+message was attached to the error then sends it to the client as a clean
+JSON response.
 */
 
 import { Request, Response, NextFunction } from 'express';
