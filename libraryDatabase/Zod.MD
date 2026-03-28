@@ -42,14 +42,18 @@
         //whole number, no negatives
         booleanField: z.boolean(),
         //true or false
-        emailField: z.string().email(),
+        emailField: z.email(),
         //valid email format
-        uuidField: z.string().uuid(),
+        uuidField: z.uuid(),
         optionalField: z.string().optional(),
         //not required
         nullableField: z.string().nullable(),
         //can be null
     });
+
+-THe validate file only contains the schema definitions, the update schema via '.partial()', export inferred types.
+
+-The fields defined here are the only ones coming from the user in the request body.
 
 ### 2.Inferring Types from Schema.
 
@@ -107,7 +111,10 @@
             if(!result.success) {
                 return res.status(400).json({
                     message: 'Validation failed',
-                    errors: result.error.flatten().fieldErrors
+                    errors: result.error.issues.map(issue => ({
+                        field: issue.path.join('.'),
+                        message: issue.message
+                    }))
                 });
             }
 
