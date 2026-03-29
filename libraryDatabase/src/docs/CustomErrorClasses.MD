@@ -45,6 +45,13 @@
         }
     };
 
+
+    400  →  Bad Request    (invalid data, fine already paid)
+    401  →  Unauthorized   (not logged in)
+    403  →  Forbidden      (logged in, no permission)
+    404  →  Not Found      (record doesn't exist)
+    500  →  Server Error   (unexpected crash)
+    
 -How does our error handler change?
 
 -Before:
