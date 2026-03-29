@@ -42,4 +42,4 @@
 
 **The industry standard wouldbe to combine Level 1 and Level 3.**
 
--SUpabase uses RLS (Row Level Security) in the database, which is basically level 3 on steroids.
+-Supabase uses RLS (Row Level Security) in the database, which is basically level 3 on steroids.
