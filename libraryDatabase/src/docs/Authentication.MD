@@ -10,9 +10,11 @@
 
 -Tool of choice Supabase Auth.
 
+-All files related to auth are kept in the same folder: 'auth'
+
 -One is sufficient for both the backend and the frontend; this is how the relationship works in practice:
 
-1.Frontend (ATM) - is where our users interact. Install the Supabase client here to show 'Loging with Google' button. When clicked, Supabase handles the complex OAuth handshake with Google, logs the user in, and hands the frontend a JWT.
+1.Frontend (ATM) - is where our users interact. Install the Supabase client here to show 'Loging with Google' button. When clicke d, Supabase handles the complex OAuth handshake with Google, logs the user in, and hands the frontend a JWT.
 
 2.Backend (The Vault) - will not handle the login process, instead when asked for private data, it passes the JWT along. It simply looks at our token and says 'Did Supabase sign this? Yes? Okay, let them in.'
 
@@ -42,6 +44,71 @@
   (algorithm)              (your data)                   (verification)
 
 
+## Build Order for Auth.
+
+    1.  Update schema        →  add password + role to members table
+    2.  Install dependencies →  bcrypt, jsonwebtoken
+    3.  Update .env          →  add JWT_SECRET, JWT_EXPIRES_IN
+    4.  Create error classes →  UnauthorizedError, ForbiddenError
+    5.  Auth validation      →  registerSchema, loginSchema, inferred types
+    6.  Auth service         →  register + login logic
+    7.  Auth middleware      →  JWT verification + authorize
+    8.  Auth controller      →  request handling
+    9.  Auth routes          →  /register, /login
+    10. Register in server.ts →  wire up auth routes
+    11. Protect routes       →  add middleware to protected routes
+    12. Test in Postman      →  register → login → access protected route
+  
+
+**Protected Routes.**
+
+-These are routes that require one to be logged in in order to access them.
+
+    public - anyone can access, no login needed.
+    protected - must be logged in to access.
+
+-One someone is logged i, authorization then decides what o
+
+**Schema changes.**
+
+-Every project needs the foolowing fields on the users table:
+
+    password - string, hashed, never plain text.
+    role - enum, defines permissions
+
+    password: varchar("password", { length: 255}).notNull(),
+
+**Defining an Enum.**
+
+-Enums are used when the field has a fixed set of values.
+
+    import { pgEnum } from 'drizzle';
+
+    export const enumName = pgEnum('db_enum_name', ['value1', 'value2', 'value3']);
+
+    export const tableName =pgTable("table_name", {
+        columnName: enumName("column_name").notNull().default('value1');
+    })
+
+-ALways define enums before the tables that use them.
+
+-The 2 names to be provided are:
+
+    db_enum_namte; 
+    //what the enum is called in the db
+    columnName;
+    //what the column is called in the table.
+
+
+**Changes to .env**
+
+    JWT_SECRET=secret_key_here
+    JWT_EXPIRES_IN=timeHere
+
+-We get our JWT secret by running the following command:
+
+    node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+
 ## Setup.
 
 -Install using:
@@ -52,6 +119,57 @@
     bcrypt - hashes passwords
     jsonwebtoken - generates and verifies JWT tokens.
 
+### 1.Auth.service
+
+    //src/auth/auth.service.ts
+
+    import bcrypt from 'bcrypt';
+    import jwt from 'jsonwebtoken';
+
+    const SALT_ROUNDS = 10;
+    //This is how many times bcrypt hashes, higher; more secure but slower.
+    //10 is the industry standard.
+
+    //REGISTER
+    export const register = async (data:RegisterInput) => {
+        //1.check if hte user already exists.
+        const exisiting = await db.select().from(TABLE_NAME)
+        .where(eq(TABLE_NAME.email, email));
+
+        if (existing[0]) {
+            throw new BadRequestError('Email already registered.');
+        }
+        /2./hash the passwor
+
+    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
+    //3.save user to db with hashed password.
+     const result = await db.insert(TABLE_NAME).values({
+            ...data,
+            password: hashedPassword
+        }).returning();
+    //4.return user without the password
+    const { password, ...safeUser } = result[0];
+    return safeUser;
+    }.
+
+    //LOGIN
+    export const login = async (data:LoginInput) => {
+        //1.find user by email
+        //2.does user exist?If not, uanothorized erroor
+        const isMatch = await bcrypt.compare(data.password, user.password);
+        //3.password match?If not, unauthorized error
+        //4.generate JWT token.
+
+        const token = jwt.sign(
+            { id:user.id, role: user.role },
+            //payload - define what goes in the token.
+            process.env.JWT_SECRET!,
+            { expiresIn: process.env.JWT_EXPIRES_IN }
+            //set the expiry data
+        );
+
+        //return token - user without password.
+    }
 
 
 

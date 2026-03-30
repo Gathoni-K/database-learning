@@ -1,13 +1,16 @@
-import { pgTable, unique, uuid, varchar, integer, foreignKey, timestamp, boolean } from "drizzle-orm/pg-core"
+import { pgTable, unique, uuid, varchar, pgEnum, integer, foreignKey, timestamp, boolean } from "drizzle-orm/pg-core"
 // import { sql } from "drizzle-orm"
 
-
+export const roleEnum = pgEnum('role', ['librarian', 'member']);
+//defining an enum
 
 export const members = pgTable("members", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	name: varchar({ length: 100 }).notNull(),
 	email: varchar({ length: 100 }).notNull(),
 	phoneNumber: varchar("phone_number", { length: 25 }).notNull(),
+	password: varchar("password", {length: 255 }).notNull(),
+	role: roleEnum('role').notNull().default('member')
 }, (table) => [
 	unique("members_email_key").on(table.email),
 ]);
