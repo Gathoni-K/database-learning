@@ -119,7 +119,106 @@
     bcrypt - hashes passwords
     jsonwebtoken - generates and verifies JWT tokens.
 
-### 1.Auth.service
+### 1.Auth.validation.
+
+-Input validation with Zod.
+
+-The generic template for this would be:
+
+    import { z } from 'zod';
+
+    <!-- REUSABLEFIELD SCHEMAS -->
+
+    const emailSchema = z
+    .string({ error: 'Email is required'})
+    .email('Invalid email format')
+    .toLowerCase()
+    .trim();
+
+    const passwordSchema = z
+    .string({ error: 'Password is required'})
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password is too long');
+
+    const usernameSchema = z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(32, 'Username is too long')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, underscores');
+
+    <!-- AUTH SCHEMAS -->
+
+    export const loginSchema = z.object({
+        email: emailSchema,
+        password: passwordSchema,
+        //username: usernameSchema
+        //fullName: z.string().min(1).max(100),
+        //add the last two if the project needs it
+    });
+
+    export const forgotPasswordSchema = z.object({
+        email: emailSchema,
+    });
+
+    export const resetPasswordSchema = z.object({
+        token: z.string({ error: 'Token is required '}),
+        password: passwordSchema,
+        confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: 'Passwords do not match',
+        path: ['confirmNewPassword'],
+    });
+    // this refine block is used to confirm that the user has used the same password twice
+
+    export const changePasswordSchema = z.object({
+        currentPassword: z.string({ error: 'Password is required'}),
+        newPassword: passwordSchema,
+        confirmNewPassword: z.string(),
+    })
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+        message: 'Passwords do not match',
+        path: ['confirmNewPassword'],
+    })
+    .refine((data) => data.currentPassword !== data.newPassword, {
+        message: 'New password must differ from current password',
+        path:['newPassword'],
+    });
+    //this check prevents the user from reusing the same password,
+
+
+    <!-- TOKEN / SESSION SCHEMA -->
+    export const refreshTokenSchema = z.object({
+        refreshToken: z.string({ error: 'Refresh token is required' }),
+    });
+
+    <!-- INFERRED TYPES -->
+
+    export type LoginInput = z.infer<typeof LoginSchema>;
+    export type RegisterInput = z.infer<typeof registerSchema>;
+    export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+    export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+    export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+    export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+    export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
+
+-What changes per project:
+
+1.passwordSchema - min(), complexity rules.
+
+2.registerSchema - username, fullName, phone, role, inviteCode
+
+3.usernameSchema - may not exist at all.
+
+4.OAuth fields - provider, providerToken, idToken
+
+5.MFA schema - otpCode, backupCode
+
+6.Error messages, public apps use friendly messages.
+
+'.refine()' - calls for cross-field logic(password match)
+
+### 2.Auth.service
 
     //src/auth/auth.service.ts
 
