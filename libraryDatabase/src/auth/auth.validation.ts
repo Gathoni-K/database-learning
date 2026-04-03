@@ -4,9 +4,16 @@ import { z } from 'zod';
 
 const emailSchema = z
     .string({ error: 'Email is required'})
-    .email('Invalid email format')
-    .toLowerCase()
-    .trim();
+    .email('Invalid email format');
+
+
+const phoneNumberSchema = z
+    .string({ error: 'Phone number is required'})
+    .min(10, 'Phone number must be at least 10 characters')
+    .max(15, 'Enter a valid phone number');
+
+const roleSchema = z
+    .string()
 
 const passwordSchema = z
     .string({ error: 'Password is required'})
@@ -25,6 +32,8 @@ export const registerSchema = z.object({
     password: passwordSchema,
     username: usernameSchema,
     confirmPassword: z.string(),
+    phoneNumber: phoneNumberSchema,
+    role: roleSchema,
 });
 
 export const loginSchema = z.object({

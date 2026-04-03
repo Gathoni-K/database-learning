@@ -270,6 +270,87 @@
         //return token - user without password.
     }
 
+### 3.Auth.middleware
+
+-The generic template for this file would be:
+
+    import { Request, Response, NextFunction } from 'express';
+    import jwt from 'jsonwebtoken';
+
+    <!-- WHAT CHANGES - Our payload interface -->
+
+    export interface AuthPayload {
+        userId: string;
+        email: string;
+        role?: string;
+
+        //add project-specific fields here
+    }
+
+    <!-- CONSTANT - Type declaration -->
+    declare global{
+        namespace Express {
+            interface Request {
+                user?: AuthPayload;
+            }
+        }
+    }
+
+    <!-- THE MIDDLEWARE FUNCTION -->
+
+    export const requireAuth = (req: Request, res: Response, next: NextFunction ): void => {
+
+        //check for the authorization header
+        const authHeader = req.headers.authorization;
+
+        if(!authHeader || !authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
+            return;
+        }
+
+        //extract the token string
+        const token = authHeader.split(' ')[1];
+
+        try{
+            //fetch the secret (this is usually set in our .env file)
+
+            const secret = process.env.JWT_SECRET;
+
+            if(!secret) {
+                console.error('CRITICAL: JWT_SECRET environment variable is missing. ');
+                res.status(500).json({ error: 'Internal server errror' });
+            }
+
+            const payload = jwt.verify(token, secret) as AuthPayload;
+            //verify our token and cast it into our custom interface
+
+            req.user = payload;
+            //attach the decoded payload to the express request object
+
+            next();
+            //hand over control to the next middleware / route controller
+        }
+        catch (error) {
+            const message = error instanceof jwt.TokenExpiredError
+            ? 'Forbidden: Token has expired'
+            : 'Forbidden: Invalid Token';
+
+            res.status(403).json({ error: message });
+            return;
+        }
+    };
+
+-The project-specific logic includes:
+
+1.The 'AuthPayload' interface, interface must perfectly match the object passed into 'jwt.sign()' when the user logs in.
+
+2.The secret key source, use the one provided in our Supabase project settings.
+
+3.The payload shape - supabase dictates the structure of the JWT.
+
+4.The audience - supabase tokens often have an audience claim set to 'authenticated'.
+
+
 
 
 

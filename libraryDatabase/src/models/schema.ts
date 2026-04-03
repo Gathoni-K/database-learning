@@ -4,6 +4,7 @@ import { pgTable, unique, uuid, varchar, pgEnum, integer, foreignKey, timestamp,
 export const roleEnum = pgEnum('role', ['librarian', 'member']);
 //defining an enum
 
+
 export const members = pgTable("members", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	name: varchar({ length: 100 }).notNull(),
