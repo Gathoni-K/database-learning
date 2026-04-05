@@ -43,6 +43,8 @@
     header                     payload                       signature
   (algorithm)              (your data)                   (verification)
 
+-Head over to JWT keys in Project Settings and copy past the 'Legacy JWT secret' into our .env file.
+
 
 ## Build Order for Auth.
 
@@ -111,13 +113,16 @@
 
 ## Setup.
 
--Install using:
+-Using Supabase auth, we do not need bcrypt.
 
-    npm install bcrypt jsonwebtoken
-    npm install -D @types/bcrypt @types/jsonwebtoken
+-Install jsonwebtoken using:
 
-    bcrypt - hashes passwords
-    jsonwebtoken - generates and verifies JWT tokens.
+    npm install jsonwebtoken
+    npm install -D @types/jsonwebtoken
+
+-Install supabase using:
+
+    npm install @supabase/supabase-js
 
 ### 1.Auth.validation.
 
@@ -222,53 +227,95 @@
 
     //src/auth/auth.service.ts
 
-    import bcrypt from 'bcrypt';
-    import jwt from 'jsonwebtoken';
+    import { createClient } from '@supabase/supabase-js';
+    import { BadRequestError, UnauthorizedError } from '../utils/errors';
+    import { RegisterInput, LoginInput } from './auth.validation';
 
-    const SALT_ROUNDS = 10;
-    //This is how many times bcrypt hashes, higher; more secure but slower.
-    //10 is the industry standard.
+    // ─── Supabase Client ───────────────────────────────────────────────────────
 
-    //REGISTER
-    export const register = async (data:RegisterInput) => {
-        //1.check if hte user already exists.
-        const exisiting = await db.select().from(TABLE_NAME)
-        .where(eq(TABLE_NAME.email, email));
+    const supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!
+    );
 
-        if (existing[0]) {
-            throw new BadRequestError('Email already registered.');
+    const supabaseAdmin = createClient(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // ─── REGISTER ─────────────────────────────────────────────────────────────
+
+    export const register = async (data: RegisterInput) => {
+    const { confirmPassword, ...rest } = data;
+
+    const { data: result, error } = await supabase.auth.signUp({
+        email: rest.email,
+        password: rest.password,
+        options: {
+        data: {
+            // add any extra fields your project needs here
+            // username: rest.username,
+            // fullName: rest.fullName,
         }
-        /2./hash the passwor
+        }
+    });
 
-    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
-    //3.save user to db with hashed password.
-     const result = await db.insert(TABLE_NAME).values({
-            ...data,
-            password: hashedPassword
-        }).returning();
-    //4.return user without the password
-    const { password, ...safeUser } = result[0];
-    return safeUser;
-    }.
+    if (error) throw new BadRequestError(error.message);
 
-    //LOGIN
-    export const login = async (data:LoginInput) => {
-        //1.find user by email
-        //2.does user exist?If not, uanothorized erroor
-        const isMatch = await bcrypt.compare(data.password, user.password);
-        //3.password match?If not, unauthorized error
-        //4.generate JWT token.
+    return result.user;
+    };
 
-        const token = jwt.sign(
-            { id:user.id, role: user.role },
-            //payload - define what goes in the token.
-            process.env.JWT_SECRET!,
-            { expiresIn: process.env.JWT_EXPIRES_IN }
-            //set the expiry data
-        );
+    // ─── LOGIN ─────────────────────────────────────────────────────────────────
 
-        //return token - user without password.
-    }
+    export const login = async (data: LoginInput) => {
+    const { data: result, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+    });
+
+    if (error) throw new UnauthorizedError(error.message);
+
+    return {
+        token: result.session.access_token,
+        user: result.user,
+    };
+    };
+
+    // ─── LOGOUT ───────────────────────────────────────────────────────────────
+
+    export const logout = async (token: string) => {
+    const { error } = await supabaseAdmin.auth.admin.signOut(token);
+
+    if (error) throw new BadRequestError(error.message);
+
+    return { message: 'Logged out successfully' };
+    };
+
+    // ─── FORGOT PASSWORD ──────────────────────────────────────────────────────
+
+    export const forgotPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: process.env.PASSWORD_RESET_REDIRECT_URL!,
+    });
+
+    if (error) throw new BadRequestError(error.message);
+
+    // always return the same message — don't reveal if email exists
+    return { message: 'If that email exists, a reset link has been sent' };
+    };
+
+    // ─── RESET PASSWORD ───────────────────────────────────────────────────────
+
+    export const resetPassword = async (newPassword: string) => {
+    const { data: result, error } = await supabase.auth.updateUser({
+        password: newPassword,
+    });
+
+    if (error) throw new BadRequestError(error.message);
+
+    return result.user;
+    };
+
 
 ### 3.Auth.middleware
 
@@ -277,68 +324,81 @@
     import { Request, Response, NextFunction } from 'express';
     import jwt from 'jsonwebtoken';
 
-    <!-- WHAT CHANGES - Our payload interface -->
-
-    export interface AuthPayload {
-        userId: string;
-        email: string;
-        role?: string;
-
-        //add project-specific fields here
+    <!-- Supabase - Specific Payload -->
+    export interface SupabaseJwtPayload {
+        aud: string;
+        exp: number;
+        sub: string;
+        //the user UUID
+        email?: string;
+        phone?: string;
+        app_metadata: {
+            provider?: string;
+            providers?: string[];
+            [key: string]: any;
+        };
+        user_metadate: {
+            [key: string]: any;
+            //any custom fields passed when the user signs up
+        };
+        role: string;
+        aal: string;
+        amr: any[];
+        session_id: string;
     }
 
-    <!-- CONSTANT - Type declaration -->
+    <!-- EXPRESS TYPE EXTENSION -->
     declare global{
-        namespace Express {
+        namespace Express{
             interface Request {
-                user?: AuthPayload;
+                user?: SupabaseJwtPayload;
             }
         }
     }
 
     <!-- THE MIDDLEWARE FUNCTION -->
+    export const requireSupabaseAuth = (req: Request, res: Response, next: NextFunction): void => {
 
-    export const requireAuth = (req: Request, res: Response, next: NextFunction ): void => {
-
-        //check for the authorization header
         const authHeader = req.headers.authorization;
 
         if(!authHeader || !authHeader.startsWith('Bearer ')) {
-            res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
+            res.status(401).json({ error: 'Unauthorized: Mising or invalid token format' });
             return;
+
         }
 
-        //extract the token string
         const token = authHeader.split(' ')[1];
 
-        try{
-            //fetch the secret (this is usually set in our .env file)
-
-            const secret = process.env.JWT_SECRET;
+        try {
+            //this must be the JWT secret from our Supabase project settings
+            const secret = process.env.SUPABASE_JWT_SECRET;
 
             if(!secret) {
-                console.error('CRITICAL: JWT_SECRET environment variable is missing. ');
-                res.status(500).json({ error: 'Internal server errror' });
+                console.error('CRIRTICAL: SUPABASE_JWT_SECRET environment variable is missing.');
+                res.status(500).json({ error: 'Internal Server error' });
+                return;
             }
 
-            const payload = jwt.verify(token, secret) as AuthPayload;
-            //verify our token and cast it into our custom interface
+            //Verify token locally, ensure the audience is authenticated to prevent anonymous Supabase keys from accessing protected API routes.
+            const payload = jwt.verify(token, secret, {
+                audience: 'authenticated'
+            }) as SupabaseJwtPayload;
 
+            //attach the payload to the request
             req.user = payload;
-            //attach the decoded payload to the express request object
+            
 
             next();
-            //hand over control to the next middleware / route controller
         }
-        catch (error) {
+        catch(error){
             const message = error instanceof jwt.TokenExpiredError
-            ? 'Forbidden: Token has expired'
-            : 'Forbidden: Invalid Token';
+            ? 'Forbidden: Supabase token has expired'
+            : 'Forbidden: Invalid space token';
 
             res.status(403).json({ error: message });
             return;
         }
-    };
+    }
 
 -The project-specific logic includes:
 
@@ -351,6 +411,11 @@
 4.The audience - supabase tokens often have an audience claim set to 'authenticated'.
 
 
+-At this point the variables that should exist in our .env file are:
 
-
+    SUPABASE_URL=
+    SUPABASE_ANON_KEY=
+    SUPABASE_SERVICE_ROLE_KEY=  # needed for admin.signOut
+    SUPABASE_JWT_SECRET=         # needed for middleware verification
+    PASSWORD_RESET_REDIRECT_URL= # needed for forgotPassword
 

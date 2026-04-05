@@ -1,80 +1,72 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { eq } from 'drizzle-orm';
-import { members } from '../models/schema';
+import { createClient } from '@supabase/supabase-js';
 import { BadRequestError, UnauthorizedError } from '../utils/errors';
-import { db } from '../config/db';
 import { RegisterInput, LoginInput } from './auth.validation';
 
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
-const SALT_ROUNDS = 10;
-
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const register = async (data: RegisterInput) => {
-
   const { confirmPassword, ...rest} = data;
 
-  const cleanData = {
-    ...rest,
-    email: rest.email.toLowerCase().trim(),
-  };
-  
-  // 1. check if user already exists[]
-  const existing = await db.select().from(members)
-    .where(eq(members.email, data.email));
+  const { data: result, error} = await supabase.auth.signUp ({
+    email: rest.email,
+    password: rest.password,
+    options: {
+      data:{
+        username: rest.username,
+      }
+    }
+  });
 
-  if (existing[0]) {
-    throw new BadRequestError('Email already registered');
-  }
+  if(error) throw new BadRequestError(error.message);
 
-  // 2. hash the password
-  const hashedPassword = await bcrypt.hash(rest.password, SALT_ROUNDS);
-
-  // 3. save to DB with hashed password
-  const result = await db.insert(members).values({
-  name:        rest.username,
-  email:       rest.email,
-  phoneNumber: rest.phoneNumber,
-  password:    hashedPassword,
-  role:        rest.role
-}).returning();
-
-  // 4. return without password
-  const { password, ...safeUser } = result[0] as typeof members.$inferSelect;
-  return safeUser;
+  return result.user;
 };
 
 export const login = async (data: LoginInput) => {
-  // 1. find user by email
-  const result = await db.select().from(members)
-    .where(eq(members.email, data.email));
+  const { data: result, error} = await supabase.auth.signInWithPassword({
+    email: data.email,
+    password: data.password,
+  });
 
-  const user = result[0];
+  if(error) throw new UnauthorizedError(error.message);
 
-  // 2. does user exist?
-  if (!user) {
-    throw new UnauthorizedError('Invalid email or password');
-  }
-
-  // 3. compare passwords
-  const isMatch = await bcrypt.compare(data.password, user.password);
-
-  if (!isMatch) {
-    throw new UnauthorizedError('Invalid email or password');
-  }
-
-  // 4. generate token
-  const token = jwt.sign(
-  { id: user.id as string, role: user.role as string },
-  process.env.JWT_SECRET!,
-  { expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
-);
-
-  // 5. return token + user without password
-  const { password, ...safeUser } = user;
-
-  return {
-    token,
-    user: safeUser
+  return{
+    token: result.session.access_token,
+    user: result.user,
   };
 };
+
+export const logout = async (token: string) => {
+  const { error } = await supabaseAdmin.auth.admin.signOut(token);
+  if (error) throw new BadRequestError(error.message);
+  return { message: 'Logged out successfully' };
+};
+
+
+export const forgotPassword = async (email: string) => {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: process.env.PASSWORD_RESET_REDIRECT_URL!,
+  });
+
+  if(error) throw new BadRequestError(error.message);
+
+  return { message: 'If that email exists, a reset link has been sent.'};
+};
+
+export const resetPassword = async (newPassword: string) => {
+  const { data: result, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) throw new BadRequestError(error.message);
+
+  return result.user;
+}
