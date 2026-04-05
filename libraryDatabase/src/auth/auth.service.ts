@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { BadRequestError, UnauthorizedError } from '../utils/errors';
-import { RegisterInput, LoginInput } from './auth.validation';
+import { RegisterInput, LoginInput, changePasswordSchema } from './auth.validation';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -49,6 +49,33 @@ export const logout = async (token: string) => {
   if (error) throw new BadRequestError(error.message);
   return { message: 'Logged out successfully' };
 };
+
+export const changePassword = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+) => {
+  //fetch the user to get their email
+  const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+  if (userError || !userData.user) throw new BadRequestError('User not found');
+
+  //verify current password by signing in.
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: userData.user.email!,
+    password: currentPassword,
+  });
+  if (verifyError) throw new UnauthorizedError('Current password is incorrect');
+
+  //update the new password
+  const { data: result, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if( error ) throw new BadRequestError(error.message);
+
+  return result.user;
+}
 
 
 export const forgotPassword = async (email: string) => {
