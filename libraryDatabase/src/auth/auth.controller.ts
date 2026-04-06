@@ -7,7 +7,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         const data = registerSchema.parse(req.body);
         const result = await authService.register(data);
 
-        res.status(200).json({
+        res.status(201).json({
             success: true,
             message: 'Registration successful.Please check email to confirm your account',
             data: result,
@@ -109,6 +109,12 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
 export const getMe = async (req: Request, res: Response, next: NextFunction) : Promise<void> => {
     try {
+        
+        if (!req.user) {                                          // ← add this
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+        };
+
         res.status(200).json({
             success: true,
             data: req.user,

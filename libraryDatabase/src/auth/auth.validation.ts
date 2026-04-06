@@ -39,8 +39,6 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
-    username: usernameSchema,
-    confirmPassword: z.string(),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -86,3 +84,5 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type refreshTokenInput = z.infer<typeof refreshTokenSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+

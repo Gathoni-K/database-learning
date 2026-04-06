@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { BadRequestError, UnauthorizedError } from '../utils/errors';
-import { RegisterInput, LoginInput, changePasswordSchema } from './auth.validation';
+import { RegisterInput, LoginInput, ChangePasswordInput} from './auth.validation';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -37,7 +37,8 @@ export const login = async (data: LoginInput) => {
   });
 
   if(error) throw new UnauthorizedError(error.message);
-
+  if (!result.session) throw new UnauthorizedError('Email not confirmed yet');
+  
   return{
     token: result.session.access_token,
     user: result.user,
@@ -56,7 +57,7 @@ export const changePassword = async (
   newPassword: string,
 ) => {
   //fetch the user to get their email
-  const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+  const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
 
   if (userError || !userData.user) throw new BadRequestError('User not found');
 

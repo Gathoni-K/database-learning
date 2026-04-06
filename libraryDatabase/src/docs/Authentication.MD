@@ -274,6 +274,7 @@
     });
 
     if (error) throw new UnauthorizedError(error.message);
+    if(!result.session) throw new UnauthorizedError('Email not confirmed');
 
     return {
         token: result.session.access_token,
