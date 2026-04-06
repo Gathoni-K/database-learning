@@ -6,6 +6,7 @@ import bookRoutes from './routes/books.routes';
 import memberRoutes from './routes/members.routes';
 import loanRoutes from './routes/loans.routes';
 import fineRoutes from './routes/fines.routes';
+import authRoutes from './auth/auth.routes';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes go here
+app.use('/api/auth', authRoutes);    
 app.use('/api/books', bookRoutes);
 // "any request that starts with /api/books → hand it to bookRoutes"
 app.use('/api/members', memberRoutes);

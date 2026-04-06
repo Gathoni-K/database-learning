@@ -552,3 +552,45 @@
             next(error);
         }
     };
+
+-What is being parsed in the controller functions is whatever the user passed in the 'req.body'.
+
+
+### 5.Auth.routes.
+
+-The general template for this would be:
+
+    import { Router } from 'express';
+    import * as authController from './auth.controller';
+    import { requireSupabaseAuth } from '../middleware/auth.middleware';
+
+    const router = Router();
+
+    // ─── PUBLIC ROUTES ────────────────────────────────────────────────────────
+    // No token needed — anyone can hit these
+
+    router.post('/register', authController.register);
+    router.post('/login', authController.login);
+    router.post('/forgot-password', authController.forgotPassword);
+    router.post('/reset-password', authController.resetPassword);
+
+    // ─── PROTECTED ROUTES ─────────────────────────────────────────────────────
+    // Token required — middleware runs first
+
+    router.post('/logout', requireSupabaseAuth, authController.logout);
+    router.post('/change-password', requireSupabaseAuth, authController.changePassword);
+    router.get('/me', requireSupabaseAuth, authController.getMe);
+
+    export default router;
+
+
+    Public   → register, login, forgot-password, reset-password
+    Protected → everything that requires a logged in user
+
+    POST → anything that creates or changes something
+    GET  → anything that only reads data
+
+    
+### 6.Register in server.ts
+
+-Register the auth routes as the first one before all other routes.
