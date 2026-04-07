@@ -12,8 +12,9 @@ const phoneNumberSchema = z
     .min(10, 'Phone number must be at least 10 characters')
     .max(15, 'Enter a valid phone number');
 
-const roleSchema = z
-    .string()
+const roleSchema = z.enum(['librarian', 'member'], {
+    error: 'Role must either be librarian or member'
+});
 
 const passwordSchema = z
     .string({ error: 'Password is required'})

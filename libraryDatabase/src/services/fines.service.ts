@@ -25,6 +25,14 @@ export const getFinesById = async (id: string) => {
     }
 } ;
 
+export const getMyFines = async (memberId: string) => {
+    const result = await db.select().from(fines)
+    .where(eq(fines.memberId, memberId));
+
+    return result; 
+  // returns empty array if no fines
+};
+
 const FINE_RATE_PER_DAY = 30;
 
 export const calculateFine = async (loanId: string) => {

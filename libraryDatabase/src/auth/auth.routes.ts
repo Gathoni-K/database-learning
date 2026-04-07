@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as authController from './auth.controller';
 import { requireSupabaseAuth } from './auth.middleware';
 
+
 const router = Router();
 
 //PUBLIC ROUTES - no token needed

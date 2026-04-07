@@ -22,6 +22,17 @@ export const getFinesById = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
+export const getMyFines = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { memberId } = req.params as { memberId: string};
+        const result = await service.getMyFines(memberId);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        next(error);
+    }
+}
+
 export const calculateFine = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { loanId } = req.params as {loanId: string};

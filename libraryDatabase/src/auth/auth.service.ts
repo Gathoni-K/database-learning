@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { BadRequestError, UnauthorizedError } from '../utils/errors';
-import { RegisterInput, LoginInput, ChangePasswordInput} from './auth.validation';
+import { RegisterInput, LoginInput } from './auth.validation';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -21,6 +21,7 @@ export const register = async (data: RegisterInput) => {
     options: {
       data:{
         username: rest.username,
+        role: rest.role,
       }
     }
   });
@@ -38,7 +39,7 @@ export const login = async (data: LoginInput) => {
 
   if(error) throw new UnauthorizedError(error.message);
   if (!result.session) throw new UnauthorizedError('Email not confirmed yet');
-  
+
   return{
     token: result.session.access_token,
     user: result.user,

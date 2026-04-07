@@ -87,7 +87,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     }
 };
 
-    export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { currrentPassword, newPassword } = changePasswordSchema.parse(req.body);
         

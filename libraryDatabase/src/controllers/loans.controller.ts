@@ -11,6 +11,17 @@ export const getAllLoans = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+export const getMyLoans = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { memberId } = req.params as { memberId: string};
+        const result = await service.getMyLoans(memberId);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        next(error);
+    }
+}
+
 export const getLoansById = async (req: Request, res: Response, next: NextFunction) => {
     try{
         const { id } = req.params as { id: string };

@@ -137,8 +137,7 @@
     const emailSchema = z
     .string({ error: 'Email is required'})
     .email('Invalid email format')
-    .toLowerCase()
-    .trim();
+   
 
     const passwordSchema = z
     .string({ error: 'Password is required'})
@@ -150,6 +149,12 @@
     .min(3, 'Username must be at least 3 characters')
     .max(32, 'Username is too long')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, underscores');
+    
+
+    const roleSchema = z.enum(['role1', 'role2'], {
+        error: 'ROle can either be 1 or 2'
+    });
+    <!-- add this for role-based authentication -->
 
     <!-- AUTH SCHEMAS -->
 
@@ -159,6 +164,15 @@
         //username: usernameSchema
         //fullName: z.string().min(1).max(100),
         //add the last two if the project needs it
+    });
+
+    export const registerSchema = z.object({
+        email: emailSchema,
+        password: passwordSchema,
+        username: usernameSchema,
+        confirmPassword: z.string(),
+        phoneNumber: phoneNumberSchema,
+        role: roleSchema,
     });
 
     export const forgotPasswordSchema = z.object({
@@ -256,6 +270,7 @@
             // add any extra fields your project needs here
             // username: rest.username,
             // fullName: rest.fullName,
+            //role: rest.role,
         }
         }
     });
@@ -316,6 +331,33 @@
 
     return result.user;
     };
+
+    <!-- CHANGE PASSWORD -->
+
+    export const changePassword = async(
+        userId: string,
+        currentPassword: string,
+        newPassword: string,
+    ) => {
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+        if (userError || !userData.user) throw new BadRequestError('User not found.');
+
+        const { error: verifyError } = await supabase.auth.signInWithPassword({
+            email: userData.user.email!,
+            password: currentPassword,
+        });
+
+        if(verifyError) throw new UnauthorizedError('Current password is incorrect.');
+
+        const { data: result, error } = await supabase.auth.updateUser({
+            password: newPassword,
+        });
+
+        if (error) throw new BadRequestError(error.message);
+
+        return result.user;
+    }
 
 
 ### 3.Auth.middleware

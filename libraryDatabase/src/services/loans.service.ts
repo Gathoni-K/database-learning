@@ -15,12 +15,20 @@ export const addLoans = async (data: typeof loans.$inferInsert) => {
 };
 //function for adding loans
 
+
+export const getMyLoans = async (memberId: string) => {
+    const result = await db.select().from(loans)
+    .where(eq(loans.memberId, memberId));
+
+    return result;
+}
+
 export const getLoansById = async (id: string) => {
     const result = await db.select().from(loans)
                     .where(eq(loans.id, id));
 
         if(result.length === 0) {
-           throw new NotFoundError("Loan not found");
+        throw new NotFoundError("Loan not found");
         }
 
         return result[0];
