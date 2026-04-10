@@ -1,0 +1,26 @@
+services:
+
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - db          
+      # waits for db to start before backend
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: librarysystem
+    volumes:
+      - pgdata:/var/lib/postgresql/data  
+      # persists data between restarts
+
+volumes:
+  pgdata:

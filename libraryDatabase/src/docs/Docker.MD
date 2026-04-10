@@ -134,6 +134,8 @@
 
 -Create a 'compose.yaml' file, where we will define our services.
 
+-The file is created at the root directory.
+
     services:
         backend: 
             build: .
@@ -157,6 +159,8 @@
 -Run this in terminal:
 
     docker compose up
+
+-Run this command after creating the 'compose.yaml' file
 
 -To shut down the containers, run:
 
