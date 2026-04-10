@@ -705,3 +705,32 @@ EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
 ```
 
 
+## Running the Database Locally.
+
+### 1.Install the Supabase CLI
+
+    npm install supabase --save-dev
+
+### 2.Initialize Supabase in project.
+
+    npx supabase init
+
+-Start the database using:
+
+    npx supabase start
+
+-The Studio URL becomes our playground.
+
+-We verify installation using:
+
+    npx supabase status
+
+-Before running the command above, ensure you run:
+
+    npx supabase start
+
+
+
+
+
+

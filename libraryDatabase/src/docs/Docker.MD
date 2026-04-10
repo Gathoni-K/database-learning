@@ -5,9 +5,12 @@
 -Create this file at the root of your project.
 
     # STAGE 1: BUILD
+    //declare our baseImage which is our starting point.
     FROM node:20-alpine AS builder
 
     WORKDIR /app
+    //think of this like the 'cd' command
+    //tells docker where our app is
 
     # Copy dependency files
     COPY package*.json ./
@@ -38,9 +41,20 @@
     COPY --from=builder /app/dist ./dist
 
     EXPOSE 3000
+    //tells Docker what port our app is using.
 
     # Start the server using the file specified in your package.json
     CMD ["node", "dist/server.js"]
+
+**Layer Caching.**
+
+-Docker has this to look at every layer independently.
+
+-How does that work?
+
+-If one layer changes, rebuild, if a layer did not change, use cache.
+
+
 
 
 ## 2.tsconfig.json
@@ -89,8 +103,70 @@
 
     docker build -t my-node-app .
 
+    // -t - tag, giving our image a name tag.
+
 -Name should be lowercase.
 
 ## 6.Running the container.
 
     docker run -p 3000:3000 my-node-app
+
+    // -p - port forwarding; a bridge between our image and our container.
+
+
+## 7.Debugging.
+
+-View logs using Docker Desktop.
+
+## 8.Docker Scout.
+
+-Generates a detailed report on the container, about any vulnerabilities and offers suggestions.
+
+-This is done by using Docker Desktop.
+
+## 9.Docker Compose and Docker Volumes.
+
+-Adding database and frontend to Docker.
+
+-Separate containers for each service; a multi-container application.
+
+-Docker compose tells all our containers how to work together to run a full application.
+
+-Create a 'compose.yaml' file, where we will define our services.
+
+    services:
+        backend: 
+            build: .
+            ports:
+
+        db:
+            image: postgres:latest
+            environment: 
+                add env keys here 
+
+        frontend:
+
+
+-Docker Volume is a folder that saves data from our containers and shares that data between them.
+
+-To achieve that:
+
+    volumes:
+        postgres_data: 
+
+-Run this in terminal:
+
+    docker compose up
+
+-To shut down the containers, run:
+
+    docker compose down
+
+
+Or one could run:
+
+    docker init
+
+-This allows docker to create the necessary files for us.
+
+**Docker build cloud**
